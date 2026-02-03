@@ -23,8 +23,9 @@ Perfect for workflows where you need to reference images by path, such as:
 ## Requirements
 
 - macOS
-- iTerm2 3.x with Python API enabled
-- (Optional) [pngpaste](https://github.com/jcsalterego/pngpaste) - faster image saving, but not required (falls back to native macOS tools)
+- iTerm2 3.x
+- **iTerm2 Python API enabled** (required, see [Enable Python API](#enable-python-api))
+- (Optional) [pngpaste](https://github.com/jcsalterego/pngpaste) - faster image saving, falls back to native macOS tools
 
 ## Installation
 

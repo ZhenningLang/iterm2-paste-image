@@ -9,6 +9,33 @@ CONFIG_DIR="$HOME/.config/iterm2-paste-image"
 echo "=== iTerm2 Paste Image Installer ==="
 echo
 
+# Check for iTerm2
+if [ ! -d "/Applications/iTerm.app" ]; then
+    echo "[Error] iTerm2 not found in /Applications"
+    echo "Please install iTerm2 first: https://iterm2.com/downloads.html"
+    exit 1
+fi
+
+# Check if Python API is enabled
+PYTHON_API_ENABLED=$(defaults read com.googlecode.iterm2 EnableAPIServer 2>/dev/null || echo "0")
+if [ "$PYTHON_API_ENABLED" != "1" ]; then
+    echo "⚠️  [Warning] iTerm2 Python API is NOT enabled!"
+    echo ""
+    echo "To enable it:"
+    echo "  1. Open iTerm2 → Preferences (Cmd+,)"
+    echo "  2. Go to: General → Magic"
+    echo "  3. Check: 'Enable Python API'"
+    echo "  4. Restart iTerm2"
+    echo ""
+    read -p "Continue installation anyway? [y/N] " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Installation cancelled."
+        exit 1
+    fi
+    echo
+fi
+
 # Check for pngpaste (optional but faster)
 if ! command -v pngpaste &> /dev/null; then
     echo "[Info] pngpaste not found (optional, will use macOS native tools)"
@@ -39,13 +66,28 @@ echo "[OK] Created image directory at ~/.iterm2-paste-image/images"
 echo
 echo "=== Installation Complete ==="
 echo
-echo "Next steps:"
-echo "1. Open iTerm2 Preferences → General → Magic"
-echo "2. Enable 'Enable Python API'"
-echo "3. Restart iTerm2"
-echo "4. Go to Scripts menu → paste_image.py to start the plugin"
-echo
-echo "To auto-start the plugin:"
-echo "  - Create folder: ~/Library/Application Support/iTerm2/Scripts/AutoLaunch"
-echo "  - Move the script there, or create a symlink"
+
+# Re-check Python API status
+PYTHON_API_ENABLED=$(defaults read com.googlecode.iterm2 EnableAPIServer 2>/dev/null || echo "0")
+if [ "$PYTHON_API_ENABLED" != "1" ]; then
+    echo "⚠️  IMPORTANT: Enable Python API (REQUIRED)"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "1. Open iTerm2 → Preferences (Cmd+,)"
+    echo "2. Go to: General → Magic"
+    echo "3. Check: 'Enable Python API' ✓"
+    echo "4. Restart iTerm2"
+    echo ""
+    echo "Without Python API enabled, the plugin will NOT work!"
+    echo ""
+fi
+
+echo "Start the plugin:"
+echo "━━━━━━━━━━━━━━━━━"
+echo "  iTerm2 menu → Scripts → paste_image.py"
+echo ""
+echo "Auto-start (optional):"
+echo "━━━━━━━━━━━━━━━━━━━━━━"
+echo "  mkdir -p ~/Library/Application\\ Support/iTerm2/Scripts/AutoLaunch"
+echo "  ln -sf ~/Library/Application\\ Support/iTerm2/Scripts/paste_image.py \\"
+echo "         ~/Library/Application\\ Support/iTerm2/Scripts/AutoLaunch/"
 echo
