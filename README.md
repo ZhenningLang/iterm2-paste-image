@@ -52,9 +52,19 @@ cd iterm2-paste-image
    - **Custom Python API Scripts Folder**: Leave unchecked (uses default `~/Library/Application Support/iTerm2/Scripts`)
 3. Restart iTerm2
 
+![Enable Python API](images/0-enable-python-api.png)
+
 ### Start the Plugin
 
-- Go to iTerm2 menu → Scripts → paste_image.py
+1. Go to iTerm2 menu → Scripts → paste_image.py
+
+![Start Plugin](images/1-enable-paste-image-plugin.png)
+
+2. **First time only**: iTerm2 will prompt you to download its Python Runtime (~178 MB). This is required - click **Download**.
+
+![Download Python Runtime](images/2-download-python-runtime.png)
+
+> **Note**: iTerm2 uses its own bundled Python Runtime, not your system Python.
 
 ### Auto-start (Optional)
 
@@ -175,9 +185,19 @@ cd iterm2-paste-image
    - **Custom Python API Scripts Folder**：不勾选（使用默认目录 `~/Library/Application Support/iTerm2/Scripts`）
 3. 重启 iTerm2
 
+![启用 Python API](images/0-enable-python-api.png)
+
 ### 启动插件
 
-- 进入 iTerm2 菜单 → Scripts → paste_image.py
+1. 进入 iTerm2 菜单 → Scripts → paste_image.py
+
+![启动插件](images/1-enable-paste-image-plugin.png)
+
+2. **首次启动**：iTerm2 会提示下载 Python Runtime（约 178 MB），这是必需的，点击 **Download** 下载。
+
+![下载 Python Runtime](images/2-download-python-runtime.png)
+
+> **注意**：iTerm2 使用自带的 Python Runtime，而不是系统 Python。
 
 ### 开机自启（可选）
 
