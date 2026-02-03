@@ -66,9 +66,11 @@ cd iterm2-paste-image
 
 > **Note**: iTerm2 uses its own bundled Python Runtime, not your system Python.
 
-### Auto-start (Optional)
+### Auto-start
 
-To run the plugin automatically when iTerm2 starts:
+The installer automatically configures the plugin to start with iTerm2. Just restart iTerm2 after installation.
+
+If you need to set up auto-start manually:
 
 ```bash
 mkdir -p ~/Library/Application\ Support/iTerm2/Scripts/AutoLaunch
@@ -199,7 +201,11 @@ cd iterm2-paste-image
 
 > **注意**：iTerm2 使用自带的 Python Runtime，而不是系统 Python。
 
-### 开机自启（可选）
+### 自动启动
+
+安装脚本已自动配置插件随 iTerm2 启动。安装后重启 iTerm2 即可。
+
+如需手动配置自动启动：
 
 ```bash
 mkdir -p ~/Library/Application\ Support/iTerm2/Scripts/AutoLaunch

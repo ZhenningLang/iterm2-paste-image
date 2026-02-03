@@ -66,6 +66,12 @@ fi
 mkdir -p "$HOME/.iterm2-paste-image/images"
 echo "[OK] Created image directory at ~/.iterm2-paste-image/images"
 
+# Setup AutoLaunch
+AUTOLAUNCH_DIR="$ITERM2_SCRIPTS_DIR/AutoLaunch"
+mkdir -p "$AUTOLAUNCH_DIR"
+ln -sf "$ITERM2_SCRIPTS_DIR/$PLUGIN_NAME" "$AUTOLAUNCH_DIR/$PLUGIN_NAME"
+echo "[OK] Configured AutoLaunch (plugin will start automatically with iTerm2)"
+
 echo
 echo "=== Installation Complete ==="
 echo
@@ -87,13 +93,11 @@ if [ "$PYTHON_API_ENABLED" != "1" ]; then
     echo ""
 fi
 
-echo "Start the plugin:"
-echo "━━━━━━━━━━━━━━━━━"
-echo "  iTerm2 menu → Scripts → paste_image.py"
+echo "Next step:"
+echo "━━━━━━━━━━"
+echo "  Restart iTerm2 - the plugin will start automatically!"
 echo ""
-echo "Auto-start (optional):"
-echo "━━━━━━━━━━━━━━━━━━━━━━"
-echo "  mkdir -p ~/Library/Application\\ Support/iTerm2/Scripts/AutoLaunch"
-echo "  ln -sf ~/Library/Application\\ Support/iTerm2/Scripts/paste_image.py \\"
-echo "         ~/Library/Application\\ Support/iTerm2/Scripts/AutoLaunch/"
+echo "Manual start (if needed):"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "  iTerm2 menu → Scripts → paste_image.py"
 echo
