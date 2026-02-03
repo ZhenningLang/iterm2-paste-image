@@ -1,0 +1,5 @@
+{
+  "save_directory": "~/.iterm2-paste-image/images",
+  "filename_format": "%Y%m%d_%H%M%S",
+  "output_format": "{path}"
+}
