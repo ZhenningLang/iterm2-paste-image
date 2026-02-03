@@ -12,11 +12,10 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-# Default configuration
 DEFAULT_CONFIG = {
     "save_directory": "~/.iterm2-paste-image/images",
-    "filename_format": "%Y%m%d_%H%M%S",  # strftime format
-    "output_format": "{path}",  # Can include {path}, {filename}, {dir}
+    "filename_format": "%Y%m%d_%H%M%S",
+    "output_format": "{path}",
 }
 
 
@@ -39,35 +38,49 @@ def load_config():
             except (json.JSONDecodeError, IOError):
                 pass
     
-    # Expand ~ in save_directory
     config["save_directory"] = os.path.expanduser(config["save_directory"])
     return config
 
 
 def has_image_in_clipboard():
-    """Check if clipboard contains an image using macOS pasteboard."""
+    """Check if clipboard contains an image."""
     try:
+        # Check for PNG
         result = subprocess.run(
             ["osascript", "-e", 
-             'tell application "System Events" to return (clipboard info for «class PNGf») is not {}'],
+             'try\nclipboard info for «class PNGf»\nreturn "yes"\non error\nreturn "no"\nend try'],
             capture_output=True,
             text=True,
             timeout=2
         )
-        if "true" in result.stdout.lower():
+        if "yes" in result.stdout:
             return True
         
-        # Also check for TIFF (common for screenshots)
+        # Check for TIFF (screenshots)
         result = subprocess.run(
             ["osascript", "-e",
-             'tell application "System Events" to return (clipboard info for «class TIFF») is not {}'],
+             'try\nclipboard info for «class TIFF»\nreturn "yes"\non error\nreturn "no"\nend try'],
             capture_output=True,
             text=True,
             timeout=2
         )
-        return "true" in result.stdout.lower()
+        return "yes" in result.stdout
     except Exception:
         return False
+
+
+def get_text_from_clipboard():
+    """Get text content from clipboard."""
+    try:
+        result = subprocess.run(
+            ["pbpaste"],
+            capture_output=True,
+            text=True,
+            timeout=2
+        )
+        return result.stdout
+    except Exception:
+        return ""
 
 
 def save_clipboard_image(config):
@@ -78,29 +91,22 @@ def save_clipboard_image(config):
     filename = datetime.now().strftime(config["filename_format"]) + ".png"
     filepath = os.path.join(save_dir, filename)
     
-    # Use pngpaste if available, otherwise fall back to osascript
+    # Try pngpaste first (faster and more reliable)
     try:
-        result = subprocess.run(
-            ["which", "pngpaste"],
-            capture_output=True,
-            timeout=2
-        )
-        has_pngpaste = result.returncode == 0
-    except Exception:
-        has_pngpaste = False
-    
-    if has_pngpaste:
         result = subprocess.run(
             ["pngpaste", filepath],
             capture_output=True,
             timeout=10
         )
-        if result.returncode == 0:
+        if result.returncode == 0 and os.path.exists(filepath):
             return filepath
+    except FileNotFoundError:
+        pass  # pngpaste not installed
+    except Exception:
+        pass
     
-    # Fallback: use osascript + sips
+    # Fallback: use osascript
     try:
-        # Save TIFF from clipboard
         tiff_path = filepath.replace(".png", ".tiff")
         script = f'''
         set theFile to POSIX file "{tiff_path}"
@@ -122,13 +128,13 @@ def save_clipboard_image(config):
         )
         
         if "success" in result.stdout:
-            # Convert TIFF to PNG using sips
             subprocess.run(
                 ["sips", "-s", "format", "png", tiff_path, "--out", filepath],
                 capture_output=True,
                 timeout=10
             )
-            os.remove(tiff_path)
+            if os.path.exists(tiff_path):
+                os.remove(tiff_path)
             if os.path.exists(filepath):
                 return filepath
     except Exception:
@@ -151,28 +157,44 @@ async def main(connection):
     """Main entry point for iTerm2 Python API."""
     config = load_config()
     
-    async def keystroke_handler(keystroke):
-        """Handle keystroke events."""
-        # Check for Cmd+V (paste)
-        if keystroke.keycode == 9 and keystroke.modifiers == [iterm2.Modifier.COMMAND]:
-            # Check if clipboard has image
-            if has_image_in_clipboard():
-                # Save image and get path
-                filepath = save_clipboard_image(config)
-                if filepath:
-                    # Get the current session and send the path
-                    app = await iterm2.async_get_app(connection)
-                    session = app.current_terminal_window.current_tab.current_session
-                    output = format_output(config, filepath)
-                    await session.async_send_text(output)
-                    return True  # Consume the keystroke
-        return False  # Let iTerm2 handle it normally
+    # Create pattern for Cmd+V
+    pattern = iterm2.KeystrokePattern()
+    pattern.required_modifiers = [iterm2.Modifier.COMMAND]
+    pattern.keycodes = [iterm2.Keycode.ANSI_V]
     
-    # Monitor keystrokes
-    async with iterm2.KeystrokeMonitor(connection) as monitor:
-        while True:
-            keystroke = await monitor.async_get()
-            await keystroke_handler(keystroke)
+    async def handle_keystroke(keystroke):
+        """Handle the intercepted Cmd+V keystroke."""
+        app = await iterm2.async_get_app(connection)
+        window = app.current_terminal_window
+        if not window:
+            return
+        
+        session = window.current_tab.current_session
+        if not session:
+            return
+        
+        # Check if clipboard has image
+        if has_image_in_clipboard():
+            filepath = save_clipboard_image(config)
+            if filepath:
+                output = format_output(config, filepath)
+                await session.async_send_text(output)
+                return
+        
+        # No image - paste text normally
+        text = get_text_from_clipboard()
+        if text:
+            await session.async_send_text(text)
+    
+    # Use KeystrokeFilter to intercept Cmd+V and KeystrokeMonitor to handle it
+    async with iterm2.KeystrokeFilter(connection, [pattern]) as _filter:
+        async with iterm2.KeystrokeMonitor(connection) as monitor:
+            while True:
+                keystroke = await monitor.async_get()
+                # Check if this is Cmd+V
+                if (keystroke.keycode == iterm2.Keycode.ANSI_V and 
+                    iterm2.Modifier.COMMAND in keystroke.modifiers):
+                    await handle_keystroke(keystroke)
 
 
 iterm2.run_forever(main)

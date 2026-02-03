@@ -9,10 +9,10 @@ CONFIG_DIR="$HOME/.config/iterm2-paste-image"
 echo "=== iTerm2 Paste Image Installer ==="
 echo
 
-# Check for pngpaste (recommended)
+# Check for pngpaste (optional but faster)
 if ! command -v pngpaste &> /dev/null; then
-    echo "[Warning] pngpaste not found. Recommended for better performance."
-    echo "Install with: brew install pngpaste"
+    echo "[Info] pngpaste not found (optional, will use macOS native tools)"
+    echo "For faster image saving: brew install pngpaste"
     echo
 fi
 

@@ -24,7 +24,7 @@ Perfect for workflows where you need to reference images by path, such as:
 
 - macOS
 - iTerm2 3.x with Python API enabled
-- (Recommended) [pngpaste](https://github.com/jcsalterego/pngpaste) for better performance
+- (Optional) [pngpaste](https://github.com/jcsalterego/pngpaste) - faster image saving, but not required (falls back to native macOS tools)
 
 ## Installation
 
@@ -144,7 +144,7 @@ Contributions welcome! Please open an issue or PR.
 
 - macOS
 - iTerm2 3.x 并启用 Python API
-- （推荐）安装 [pngpaste](https://github.com/jcsalterego/pngpaste) 以获得更好性能
+- （可选）[pngpaste](https://github.com/jcsalterego/pngpaste) - 更快的图片保存，非必需（会自动回退到 macOS 原生工具）
 
 ## 安装
 
