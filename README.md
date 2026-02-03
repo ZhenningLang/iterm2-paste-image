@@ -45,8 +45,11 @@ cd iterm2-paste-image
 
 ### Enable Python API
 
-1. Open iTerm2 → Preferences → General → Magic
-2. Check "Enable Python API"
+1. Open iTerm2 → Settings (Cmd+,) → General → Magic
+2. Check **"Enable Python API"**
+   - **Require "Automation" permission**: Keep checked (recommended, more secure)
+   - **Allow all apps to connect**: Leave unchecked (not needed for this plugin)
+   - **Custom Python API Scripts Folder**: Leave unchecked (uses default `~/Library/Application Support/iTerm2/Scripts`)
 3. Restart iTerm2
 
 ### Start the Plugin
@@ -165,8 +168,11 @@ cd iterm2-paste-image
 
 ### 启用 Python API
 
-1. 打开 iTerm2 → Preferences → General → Magic
-2. 勾选 "Enable Python API"
+1. 打开 iTerm2 → Settings (Cmd+,) → General → Magic
+2. 勾选 **"Enable Python API"**
+   - **Require "Automation" permission**：保持勾选（推荐，更安全）
+   - **Allow all apps to connect**：不勾选（本插件不需要）
+   - **Custom Python API Scripts Folder**：不勾选（使用默认目录 `~/Library/Application Support/iTerm2/Scripts`）
 3. 重启 iTerm2
 
 ### 启动插件
