@@ -13,8 +13,8 @@
 |------|------|--------|----------|
 | 中文分词跳转 | Option+←/→ | zsh widget + jieba daemon | 任意终端 (zsh) |
 | 中文分词删除 | Option+Delete | zsh widget + jieba daemon | 任意终端 (zsh) |
-| 剪贴板图片粘贴 | Cmd+V | iTerm2 Python 插件 | iTerm2 |
-| Cmd+Z 撤销 | Cmd+Z | iTerm2 plist 键映射 | iTerm2 |
+| 剪贴板图片粘贴 | Cmd+V | iTerm2 Python 插件 / Tabby 插件 | iTerm2 / Tabby |
+| Cmd+Z 撤销 | Cmd+Z | iTerm2 plist 键映射 / Tabby 插件 | iTerm2 / Tabby |
 
 ### 中文分词跳转
 
@@ -38,12 +38,21 @@ cd paw
 
 - macOS
 - zsh（分词功能）
-- iTerm2 + Python API 已启用（图片粘贴 / Cmd+Z 功能）
+- iTerm2 + Python API 已启用，或 Tabby（图片粘贴 / Cmd+Z 功能）
 - (可选) [pngpaste](https://github.com/jcsalterego/pngpaste)：`brew install pngpaste`
+- (可选) Node.js + npm（构建 Tabby 插件）
 
 ### 启用 iTerm2 Python API
 
 Settings (Cmd+,) → General → Magic → 勾选 **Enable Python API** → 重启 iTerm2
+
+### Tabby 插件
+
+安装脚本会自动检测 Tabby 并安装 `tabby-paw` 插件到 `~/Library/Application Support/tabby/plugins/`。也可通过 `paw` 交互式界面启停。安装后重启 Tabby 生效。
+
+Tabby 插件提供：
+- **Cmd+Z** → 发送 undo 控制字符 (0x1f)
+- **Cmd+V** → 检测剪贴板图片，保存后粘贴路径
 
 ## 使用
 
@@ -89,6 +98,10 @@ paw daemon start|stop|restart|status
 ├── paw.sock            # daemon socket
 ├── paw.pid             # daemon PID
 └── images/             # 粘贴的图片
+
+~/Library/Application Support/tabby/plugins/tabby-paw/
+├── package.json        # Tabby 插件描述
+└── dist/index.js       # Tabby 插件（Cmd+Z + 图片粘贴）
 ```
 
 分词功能链路：`按键 → zsh widget → nc -U socket → jieba daemon → 返回新光标位置 → zle 更新`
@@ -99,7 +112,8 @@ paw daemon start|stop|restart|status
 运行 `paw diagnose`，自动检测 daemon、zshrc、jieba 状态并修复。
 
 **图片粘贴不工作？**
-确认 iTerm2 Python API 已启用，运行 `paw diagnose` 检查插件安装状态。
+- iTerm2：确认 Python API 已启用，运行 `paw diagnose` 检查。
+- Tabby：确认 tabby-paw 插件已安装（`paw status` 查看），重启 Tabby。
 
 ## License
 

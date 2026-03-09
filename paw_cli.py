@@ -27,6 +27,8 @@ ZSHRC = HOME / ".zshrc"
 ITERM2_PLIST = HOME / "Library" / "Preferences" / "com.googlecode.iterm2.plist"
 ITERM2_SCRIPTS = HOME / "Library" / "Application Support" / "iTerm2" / "Scripts"
 ITERM2_AUTOLAUNCH = ITERM2_SCRIPTS / "AutoLaunch"
+TABBY_PLUGINS = HOME / "Library" / "Application Support" / "tabby" / "plugins"
+TABBY_PAW_PLUGIN = TABBY_PLUGINS / "tabby-paw"
 # Source repo (where this script lives)
 REPO_DIR = Path(__file__).resolve().parent
 
@@ -62,6 +64,7 @@ def detect_env():
     env["terminal"] = os.environ.get("TERM_PROGRAM", "unknown")
     env["terminal_version"] = os.environ.get("TERM_PROGRAM_VERSION", "")
     env["has_iterm2"] = Path("/Applications/iTerm.app").is_dir()
+    env["has_tabby"] = Path("/Applications/Tabby.app").is_dir()
     env["has_nc"] = shutil.which("nc") is not None
     env["has_pngpaste"] = shutil.which("pngpaste") is not None
     return env
@@ -386,6 +389,63 @@ def disable_cmd_z():
         with open(ITERM2_PLIST, "wb") as f:
             plistlib.dump(data, f, fmt=plistlib.FMT_BINARY)
 
+# ── Tabby plugin ────────────────────────────────────────────────────
+
+def _tabby_plugin_installed():
+    return (TABBY_PAW_PLUGIN / "dist" / "index.js").exists()
+
+def check_tabby_paw():
+    if not _tabby_plugin_installed():
+        return False, "plugin not installed"
+    return True, str(TABBY_PAW_PLUGIN)
+
+def _build_tabby_plugin():
+    """Build tabby-paw plugin from source."""
+    src_dir = REPO_DIR / "tabby-paw"
+    if not src_dir.exists():
+        # If running from ~/.config/paw, try the original repo
+        print(f"  {fail('tabby-paw source not found in ' + str(src_dir))}")
+        return False
+    npm = shutil.which("npm")
+    if not npm:
+        print(f"  {fail('npm not found (required to build tabby-paw)')}")
+        return False
+    print("  Installing dependencies...")
+    r = subprocess.run([npm, "install"], cwd=str(src_dir), capture_output=True, text=True, timeout=120)
+    if r.returncode != 0:
+        print(f"  {fail('npm install failed: ' + r.stderr[:200])}")
+        return False
+    print("  Building...")
+    r = subprocess.run([npm, "run", "build"], cwd=str(src_dir), capture_output=True, text=True, timeout=60)
+    if r.returncode != 0:
+        print(f"  {fail('build failed: ' + r.stderr[:200])}")
+        return False
+    return True
+
+def enable_tabby_paw():
+    src_dir = REPO_DIR / "tabby-paw"
+    dist_index = src_dir / "dist" / "index.js"
+    if not dist_index.exists():
+        if not _build_tabby_plugin():
+            return
+    TABBY_PAW_PLUGIN.mkdir(parents=True, exist_ok=True)
+    (TABBY_PAW_PLUGIN / "dist").mkdir(exist_ok=True)
+    shutil.copy2(src_dir / "package.json", TABBY_PAW_PLUGIN / "package.json")
+    shutil.copy2(dist_index, TABBY_PAW_PLUGIN / "dist" / "index.js")
+    map_file = src_dir / "dist" / "index.js.map"
+    if map_file.exists():
+        shutil.copy2(map_file, TABBY_PAW_PLUGIN / "dist" / "index.js.map")
+    print(f"  {ok('tabby-paw plugin installed')}")
+    print(f"  {dim('restart Tabby to activate')}")
+
+def disable_tabby_paw():
+    if TABBY_PAW_PLUGIN.exists():
+        shutil.rmtree(TABBY_PAW_PLUGIN)
+        print(f"  {ok('tabby-paw plugin removed')}")
+        print(f"  {dim('restart Tabby to take effect')}")
+    else:
+        print(f"  {dim('plugin not installed')}")
+
 # ── Diagnose ────────────────────────────────────────────────────────
 
 def diagnose(env):
@@ -505,6 +565,16 @@ def diagnose(env):
             print(f"  {fail(f'cannot check: {e}')}")
         print()
 
+    # Tabby plugin
+    if env.get("has_tabby"):
+        print(f"  {bold('Tabby Plugin (tabby-paw)')}")
+        installed = _tabby_plugin_installed()
+        print(f"  {ok('plugin installed') if installed else fail('plugin not installed')}")
+        if not installed and _prompt("Fix: install tabby-paw plugin?"):
+            enable_tabby_paw()
+            fixed += 1
+        print()
+
     if fixed:
         print(f"  {ok(f'{fixed} issue(s) fixed.')}")
     else:
@@ -614,9 +684,14 @@ def build_features():
             requires_terminal="iterm2",
         ),
         Feature(
-            "cmd_z", "Cmd+Z undo",
+            "cmd_z", "Cmd+Z undo (iTerm2)",
             check_cmd_z, enable_cmd_z, disable_cmd_z,
             requires_terminal="iterm2",
+        ),
+        Feature(
+            "tabby_paw", "Tabby plugin",
+            check_tabby_paw, enable_tabby_paw, disable_tabby_paw,
+            requires_terminal="tabby",
         ),
     ]
 
