@@ -325,15 +325,22 @@ async def main(connection):
     async def on_keystroke(keystroke, session):
         kc = keystroke.keycode
         mods = keystroke.modifiers
+        logger.info(f"Keystroke: keycode={kc} modifiers={mods}")
 
         if iterm2.Modifier.COMMAND in mods and kc == iterm2.Keycode.ANSI_V:
+            logger.info("→ handle_paste")
             await handle_paste(session, config)
         elif iterm2.Modifier.OPTION in mods and kc == iterm2.Keycode.RIGHT_ARROW:
+            logger.info("→ handle_word_jump(forward)")
             await handle_word_jump(session, forward=True)
         elif iterm2.Modifier.OPTION in mods and kc == iterm2.Keycode.LEFT_ARROW:
+            logger.info("→ handle_word_jump(backward)")
             await handle_word_jump(session, forward=False)
         elif iterm2.Modifier.OPTION in mods and kc == iterm2.Keycode.DELETE:
+            logger.info("→ handle_word_delete")
             await handle_word_delete(session)
+        else:
+            logger.debug(f"Unhandled keystroke: {kc} {mods}")
 
     try:
         async with iterm2.KeystrokeFilter(connection, patterns):
