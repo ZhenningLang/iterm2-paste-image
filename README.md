@@ -27,8 +27,8 @@
 ## 安装
 
 ```bash
-git clone https://github.com/ZhenningLang/iterm2-paste-image.git
-cd iterm2-paste-image
+git clone https://github.com/ZhenningLang/paw.git
+cd paw
 ./install.sh
 ```
 
