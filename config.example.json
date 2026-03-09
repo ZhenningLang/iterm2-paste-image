@@ -1,5 +1,12 @@
 {
-  "save_directory": "~/.iterm2-paste-image/images",
-  "filename_format": "%Y%m%d_%H%M%S",
-  "output_format": "{path}"
+    "features": {
+        "paste_image": true,
+        "word_jump": true,
+        "word_delete": true
+    },
+    "paste_image": {
+        "save_directory": "~/.config/paw/images",
+        "filename_format": "%Y%m%d_%H%M%S",
+        "output_format": "{path}"
+    }
 }

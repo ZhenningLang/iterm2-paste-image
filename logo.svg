@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#16213e"/>
+    </linearGradient>
+    <linearGradient id="paw" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff9f43"/>
+      <stop offset="100%" style="stop-color:#ee5a24"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <!-- Main pad -->
+  <ellipse cx="256" cy="310" rx="100" ry="85" fill="url(#paw)"/>
+  <!-- Toe pads -->
+  <ellipse cx="170" cy="210" rx="42" ry="48" fill="url(#paw)" transform="rotate(-15 170 210)"/>
+  <ellipse cx="256" cy="185" rx="40" ry="48" fill="url(#paw)"/>
+  <ellipse cx="342" cy="210" rx="42" ry="48" fill="url(#paw)" transform="rotate(15 342 210)"/>
+  <!-- Terminal cursor blink on main pad -->
+  <rect x="230" y="290" width="12" height="40" rx="3" fill="#1a1a2e" opacity="0.7"/>
+  <!-- CJK character hint -->
+  <text x="260" y="325" font-family="sans-serif" font-size="28" fill="#1a1a2e" opacity="0.5" font-weight="bold">字</text>
+</svg>
