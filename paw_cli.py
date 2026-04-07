@@ -29,6 +29,8 @@ ITERM2_SCRIPTS = HOME / "Library" / "Application Support" / "iTerm2" / "Scripts"
 ITERM2_AUTOLAUNCH = ITERM2_SCRIPTS / "AutoLaunch"
 TABBY_PLUGINS = HOME / "Library" / "Application Support" / "tabby" / "plugins"
 TABBY_PAW_PLUGIN = TABBY_PLUGINS / "node_modules" / "tabby-paw"
+TMUX_CONF = HOME / ".tmux.conf"
+TMUX_PASTE_SCRIPT = CONFIG_DIR / "paw-tmux-paste.sh"
 # Source repo (where this script lives)
 REPO_DIR = Path(__file__).resolve().parent
 
@@ -65,6 +67,7 @@ def detect_env():
     env["terminal_version"] = os.environ.get("TERM_PROGRAM_VERSION", "")
     env["has_iterm2"] = Path("/Applications/iTerm.app").is_dir()
     env["has_tabby"] = Path("/Applications/Tabby.app").is_dir()
+    env["has_tmux"] = shutil.which("tmux") is not None
     env["has_nc"] = shutil.which("nc") is not None
     env["has_pngpaste"] = shutil.which("pngpaste") is not None
     return env
@@ -446,6 +449,66 @@ def disable_tabby_paw():
     else:
         print(f"  {dim('plugin not installed')}")
 
+# ── tmux paste ──────────────────────────────────────────────────────
+
+TMUX_BINDING_LINE = 'bind-key -n C-v run-shell "~/.config/paw/paw-tmux-paste.sh"'
+TMUX_BINDING_MARKER = "paw-tmux-paste"
+
+def _tmux_conf_has_paw():
+    if TMUX_CONF.exists():
+        return TMUX_BINDING_MARKER in TMUX_CONF.read_text()
+    return False
+
+def check_tmux_paw():
+    if not TMUX_PASTE_SCRIPT.exists():
+        return False, "script not installed"
+    if not _tmux_conf_has_paw():
+        return True, warn("not in .tmux.conf")
+    return True, "Ctrl+V"
+
+def enable_tmux_paw():
+    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    (CONFIG_DIR / "images").mkdir(parents=True, exist_ok=True)
+
+    src = REPO_DIR / "paw-tmux-paste.sh"
+    if src.exists():
+        shutil.copy2(src, TMUX_PASTE_SCRIPT)
+        os.chmod(TMUX_PASTE_SCRIPT, 0o755)
+    elif not TMUX_PASTE_SCRIPT.exists():
+        print(f"  {fail('paw-tmux-paste.sh not found in ' + str(REPO_DIR))}")
+        return
+
+    if not _tmux_conf_has_paw():
+        with open(TMUX_CONF, "a") as f:
+            f.write(f'\n# Paw - clipboard image paste\n{TMUX_BINDING_LINE}\n')
+        print(f"  {ok('added to ~/.tmux.conf')}")
+    else:
+        print(f"  {dim('already in ~/.tmux.conf')}")
+
+    print(f"  {ok('tmux paste script installed')}")
+    print(f"  {dim('usage: Ctrl+V to paste (image path or text)')}")
+    print(f"  {dim('run: tmux source ~/.tmux.conf  (or restart tmux)')}")
+
+def disable_tmux_paw():
+    if TMUX_PASTE_SCRIPT.exists():
+        TMUX_PASTE_SCRIPT.unlink()
+    if TMUX_CONF.exists() and _tmux_conf_has_paw():
+        lines = TMUX_CONF.read_text().splitlines(keepends=True)
+        new = []
+        skip_next = False
+        for line in lines:
+            if "Paw - clipboard image paste" in line:
+                skip_next = True
+                continue
+            if skip_next and TMUX_BINDING_MARKER in line:
+                skip_next = False
+                continue
+            skip_next = False
+            new.append(line)
+        TMUX_CONF.write_text("".join(new))
+        print(f"  {ok('removed from ~/.tmux.conf')}")
+    print(f"  {ok('tmux paste script removed')}")
+
 # ── Diagnose ────────────────────────────────────────────────────────
 
 def diagnose(env):
@@ -575,6 +638,27 @@ def diagnose(env):
             fixed += 1
         print()
 
+    # tmux paste
+    if env.get("has_tmux"):
+        print(f"  {bold('tmux Image Paste')}")
+        script_ok = TMUX_PASTE_SCRIPT.exists()
+        print(f"  {ok('script installed') if script_ok else fail('script not installed')}")
+        if not script_ok and _prompt("Fix: install tmux paste script?"):
+            enable_tmux_paw()
+            fixed += 1
+        elif script_ok:
+            conf_ok = _tmux_conf_has_paw()
+            print(f"  {ok('tmux.conf binding') if conf_ok else fail('not in .tmux.conf')}")
+            if not conf_ok and _prompt("Fix: add binding to .tmux.conf?"):
+                if not _tmux_conf_has_paw():
+                    with open(TMUX_CONF, "a") as f:
+                        f.write(f'\n# Paw - clipboard image paste\n{TMUX_BINDING_LINE}\n')
+                print(f"  {ok('added to ~/.tmux.conf')}")
+                fixed += 1
+        pngpaste_ok = shutil.which("pngpaste") is not None
+        print(f"  {ok('pngpaste') if pngpaste_ok else fail('pngpaste not found (brew install pngpaste)')}")
+        print()
+
     if fixed:
         print(f"  {ok(f'{fixed} issue(s) fixed.')}")
     else:
@@ -692,6 +776,11 @@ def build_features():
             "tabby_paw", "Tabby plugin",
             check_tabby_paw, enable_tabby_paw, disable_tabby_paw,
             requires_terminal="tabby",
+        ),
+        Feature(
+            "tmux_paste", "tmux image paste",
+            check_tmux_paw, enable_tmux_paw, disable_tmux_paw,
+            requires_terminal="tmux",
         ),
     ]
 

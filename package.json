@@ -1,0 +1,31 @@
+{
+  "name": "paw-terminal",
+  "version": "0.1.0",
+  "description": "Terminal enhancement for macOS — Chinese word segmentation, clipboard image paste, Cmd+Z undo. Supports iTerm2, Tabby, Ghostty + tmux.",
+  "keywords": [
+    "terminal",
+    "macos",
+    "clipboard",
+    "image-paste",
+    "chinese",
+    "word-segmentation",
+    "jieba",
+    "iterm2",
+    "tabby",
+    "ghostty",
+    "tmux",
+    "zsh"
+  ],
+  "bin": {
+    "paw": "./bin/paw"
+  },
+  "scripts": {
+    "postinstall": "bash ./install.sh"
+  },
+  "os": ["darwin"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZhenningLang/paw.git"
+  }
+}
